@@ -1,0 +1,9 @@
+# binary
+/main
+/serverd
+
+# jetbrains
+/.idea/*
+
+# golang
+coverage.out

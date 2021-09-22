@@ -1,0 +1,44 @@
+version: "3.5"
+
+services:
+  go:
+    container_name: go-hydralink-local
+    image: hydralinkapp/hydralink-api:latest
+    ports:
+      - "3000:3000" # Forward the exposed port 3000 on the container to port 3000 on the host machine
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://hydralink-api:hydralink-api@db:5432/hydralink-api?sslmode=disable
+      HOST_ADDRESS: 0.0.0.0:3000
+
+  db:
+    container_name: db-hydralink-local
+    ports:
+      - "5432:5432"
+    image: postgres:12-alpine
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    environment:
+      POSTGRES_USER: hydralink-api
+      POSTGRES_PASSWORD: hydralink-api
+
+  migrate:
+    container_name: migrate-hydralink-local
+    image: migrate/migrate:v4.6.2
+    entrypoint: "" # allows command to be pass into it
+    environment:
+      DATABASE_URL: postgres://hydralink-api:hydralink-api@db:5432/hydralink-api?sslmode=disable
+
+  nginx:
+    container_name: nginx-hydralink-local
+    image: hydralinkapp/hydralink-web:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - go
